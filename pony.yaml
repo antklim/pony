@@ -1,0 +1,10 @@
+pages:
+  -
+    name: Home page
+    description: home page
+    template: index.html
+    properties: 
+      - key: title
+        value: Home Page
+      - key: header
+        value: Welcome to the home page

@@ -41,3 +41,12 @@ func rootHandler(tmpl *template.Template) http.HandlerFunc {
 		}
 	}
 }
+
+// Commands:
+// build 	- builds static pages.
+// run 		- runs preview.
+// verify - verifies that meta matches templates and vice versa.
+//					outputs: found not used meta key, found key in template without meta.
+//
+// Flags:
+// strict - meta must match template, used by [build|run], fatal when not matching.
