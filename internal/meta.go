@@ -1,25 +1,37 @@
 package internal
 
+import (
+	"gopkg.in/yaml.v2"
+)
+
 // Props ...
 type Props map[string]string
 
 // Meta ...
 type Meta struct {
-	Pages []Page `yaml:"pages"`
+	Pages map[string]Page `yaml:"pages"`
+}
+
+// MetaLoad creates instance of meta from source.
+func MetaLoad(data string) (*Meta, error) {
+	meta := &Meta{}
+	if err := yaml.Unmarshal([]byte(data), meta); err != nil {
+		return nil, err
+	}
+
+	return meta, nil
 }
 
 // Page ...
 type Page struct {
-	Key         string `yaml:"key"`
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
-	Title       string `yaml:"title"`
+	Name string `yaml:"name"`
+	Path string `yaml:"path"`
 	// Template    Template   `yaml:"template"`
 	Properties []Property `yaml:"properties"`
 }
 
 // Props ...
-func (p *Page) Props() Props {
+func (p Page) Props() Props {
 	if len(p.Properties) == 0 {
 		return nil
 	}

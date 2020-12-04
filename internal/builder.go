@@ -4,8 +4,6 @@ import (
 	"html/template"
 	"io"
 	"io/ioutil"
-	"os"
-	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 )
@@ -26,29 +24,29 @@ type Builder struct {
 
 // Build builds template based on the data provided in meta file.
 func (b *Builder) Build() error {
-	meta, err := readMeta(b.Meta)
-	if err != nil {
-		return err
-	}
+	// meta, err := readMeta(b.Meta)
+	// if err != nil {
+	// 	return err
+	// }
 
-	tmpl, err := template.ParseFiles(b.Tmpl)
-	if err != nil {
-		return err
-	}
+	// tmpl, err := template.ParseFiles(b.Tmpl)
+	// if err != nil {
+	// 	return err
+	// }
 
-	for _, page := range meta.Pages {
-		fname := filepath.Join(b.OutDir, page.Key+".html")
-		f, err := os.Create(fname)
-		if err != nil {
-			return err
-		}
+	// for _, page := range meta.Pages {
+	// 	fname := filepath.Join(b.OutDir, page.Key+".html")
+	// 	f, err := os.Create(fname)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		if err := buildPage(f, tmpl, page); err != nil {
-			// TODO: keep file only when in debug mode
-			// os.RemoveAll(f.Name())
-			return err
-		}
-	}
+	// 	if err := buildPage(f, tmpl, page); err != nil {
+	// 		// TODO: keep file only when in debug mode
+	// 		// os.RemoveAll(f.Name())
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }
