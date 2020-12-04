@@ -1,5 +1,5 @@
 pages:
-  -
+  - key: home
     name: Home page
     description: home page
     template: index.html

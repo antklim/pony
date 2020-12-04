@@ -34,7 +34,9 @@ func (b *Builder) Build(w io.Writer) error {
 		return err
 	}
 
-	if err := tmpl.Execute(w, meta); err != nil {
+	props := meta.Props()
+
+	if err := tmpl.Execute(w, props["home"]); err != nil {
 		return err
 	}
 
