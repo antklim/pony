@@ -8,20 +8,6 @@ type Meta struct {
 	Pages []Page `yaml:"pages"`
 }
 
-// Props returs all pages properties
-func (m *Meta) Props() map[string]Props {
-	if len(m.Pages) == 0 {
-		return nil
-	}
-
-	props := make(map[string]Props)
-	for _, page := range m.Pages {
-		props[page.Key] = page.Props()
-	}
-
-	return props
-}
-
 // Page ...
 type Page struct {
 	Key         string `yaml:"key"`
