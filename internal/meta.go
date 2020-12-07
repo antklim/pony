@@ -4,25 +4,25 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Props ...
+// Props content properties.
 type Props map[string]string
 
-// Content ...
-type Content struct {
+// Meta describes content metadata.
+type Meta struct {
 	Pages map[string]Page `yaml:"pages"`
 }
 
-// ContentLoad creates instance of content from source.
-func ContentLoad(data string) (*Content, error) {
-	content := &Content{}
-	if err := yaml.Unmarshal([]byte(data), content); err != nil {
+// MetaLoad creates instance of content metadata from source.
+func MetaLoad(data string) (*Meta, error) {
+	meta := &Meta{}
+	if err := yaml.Unmarshal([]byte(data), meta); err != nil {
 		return nil, err
 	}
 
-	return content, nil
+	return meta, nil
 }
 
-// Page ...
+// Page describes content page structure.
 type Page struct {
 	Name string `yaml:"name"`
 	Path string `yaml:"path"`
@@ -30,7 +30,7 @@ type Page struct {
 	Properties []Property `yaml:"properties"`
 }
 
-// Props ...
+// Props returns content page properties.
 func (p Page) Props() Props {
 	if len(p.Properties) == 0 {
 		return nil
@@ -49,7 +49,7 @@ func (p Page) Props() Props {
 // 	Tmpl     *template.Template
 // }
 
-// Property ...
+// Property content property.
 type Property struct {
 	Key   string `yaml:"key"`
 	Value string `yaml:"value"`

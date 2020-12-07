@@ -5,7 +5,10 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
+
+// TODO: template is a part of meta and should be loaded as part of MetaLoad.
 
 // Builder defines parameters required to build static pages.
 type Builder struct {
@@ -21,14 +24,14 @@ type Builder struct {
 	Strict bool
 }
 
-// Build builds template based on the data provided in meta file.
+// Build applies metadata to template.
 func (b *Builder) Build() error {
 	buf, err := ioutil.ReadFile(b.Meta)
 	if err != nil {
 		return err
 	}
 
-	content, err := ContentLoad(string(buf))
+	meta, err := MetaLoad(string(buf))
 	if err != nil {
 		return err
 	}
@@ -38,18 +41,40 @@ func (b *Builder) Build() error {
 		return err
 	}
 
-	for key, page := range content.Pages {
-		fname := filepath.Join(b.OutDir, key+".html")
-		f, err := os.Create(fname)
-		if err != nil {
+	for id, page := range meta.Pages {
+		if err := buildPage(id, page, tmpl, b.OutDir); err != nil {
 			return err
 		}
+	}
 
-		if err := tmpl.Execute(f, page.Props()); err != nil {
-			// TODO: keep file only when in debug mode
-			// os.RemoveAll(f.Name())
+	return nil
+}
+
+func buildPage(id string, page Page, tmpl *template.Template, outdir string) error {
+	ppath := strings.TrimSpace(page.Path)
+
+	subdir := ""
+	if ppath != "" && ppath != "/" {
+		subdir = ppath
+	}
+
+	dir := filepath.Join(outdir, subdir)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err := os.Mkdir(dir, 0755); err != nil {
 			return err
 		}
+	}
+
+	fname := filepath.Join(outdir, subdir, id+".html")
+	f, err := os.Create(fname)
+	if err != nil {
+		return err
+	}
+
+	if err := tmpl.Execute(f, page.Props()); err != nil {
+		// TODO: keep file only when in debug mode
+		// os.RemoveAll(f.Name())
+		return err
 	}
 
 	return nil

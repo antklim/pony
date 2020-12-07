@@ -27,8 +27,8 @@ pages:
       - key: header
         value: Welcome to the about page`
 
-func TestContentLoad(t *testing.T) {
-	expected := &internal.Content{
+func TestMetaLoad(t *testing.T) {
+	expected := &internal.Meta{
 		Pages: map[string]internal.Page{
 			"index": internal.Page{
 				Name: "Home page",
@@ -49,7 +49,7 @@ func TestContentLoad(t *testing.T) {
 		},
 	}
 
-	meta, err := internal.ContentLoad(metaData)
+	meta, err := internal.MetaLoad(metaData)
 	require.NoError(t, err)
 	assert.Equal(t, expected, meta)
 }
@@ -89,7 +89,7 @@ func TestMetaPageProps(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			meta, err := internal.ContentLoad(tC.data)
+			meta, err := internal.MetaLoad(tC.data)
 			require.NoError(t, err)
 			assert.Equal(t, tC.props, meta.Pages["index"].Props())
 		})
