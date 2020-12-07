@@ -9,6 +9,7 @@ import (
 )
 
 var metaData = `
+template: index.html
 pages:
   index:
     name: Home page
@@ -21,6 +22,7 @@ pages:
   about:
     name: About page
     path: /about
+    template: about.html
     properties: 
       - key: title
         value: About Page
@@ -39,14 +41,16 @@ func TestMetaLoad(t *testing.T) {
 				},
 			},
 			"about": internal.Page{
-				Name: "About page",
-				Path: "/about",
+				Name:     "About page",
+				Path:     "/about",
+				Template: "about.html",
 				Properties: []internal.Property{
 					{Key: "title", Value: "About Page"},
 					{Key: "header", Value: "Welcome to the about page"},
 				},
 			},
 		},
+		Template: "index.html",
 	}
 
 	meta, err := internal.MetaLoad(metaData)

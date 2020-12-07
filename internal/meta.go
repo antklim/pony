@@ -9,7 +9,8 @@ type Props map[string]string
 
 // Meta describes content metadata.
 type Meta struct {
-	Pages map[string]Page `yaml:"pages"`
+	Pages    map[string]Page `yaml:"pages"`
+	Template string          `yaml:"template"`
 }
 
 // MetaLoad creates instance of content metadata from source.
@@ -24,9 +25,9 @@ func MetaLoad(data string) (*Meta, error) {
 
 // Page describes content page structure.
 type Page struct {
-	Name string `yaml:"name"`
-	Path string `yaml:"path"`
-	// Template    Template   `yaml:"template"`
+	Name       string     `yaml:"name"`
+	Path       string     `yaml:"path"`
+	Template   string     `yaml:"template"`
 	Properties []Property `yaml:"properties"`
 }
 
@@ -42,12 +43,6 @@ func (p Page) Props() Props {
 	}
 	return props
 }
-
-// Template ...
-// type Template struct {
-// 	FilePath string
-// 	Tmpl     *template.Template
-// }
 
 // Property content property.
 type Property struct {

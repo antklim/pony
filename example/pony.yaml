@@ -1,8 +1,8 @@
+template: index.html
 pages:
   index:
     name: Home page
     path: /
-    # template: index.html
     properties: 
       - key: title
         value: Home Page
@@ -11,7 +11,6 @@ pages:
   about:
     name: About page
     path: /about
-    # template: index.html
     properties: 
       - key: title
         value: About Page
@@ -20,7 +19,7 @@ pages:
   blogs:
     name: Blogs page
     path: /blogs
-    # template: index.html
+    template: blog.html
     properties: 
       - key: title
         value: Blogs Page
@@ -29,7 +28,7 @@ pages:
   blog:
     name: Blog page
     path: /blogs/{id}
-    # template: blog.html
+    template: blog.html
     properties: 
       - key: title
         value: Blog Page
