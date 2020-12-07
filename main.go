@@ -21,7 +21,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/antklim/pony/commands"
@@ -29,7 +28,6 @@ import (
 
 func main() {
 	if err := commands.Execute(os.Args[1:]); err != nil {
-		fmt.Println(err)
 		os.Exit(1)
 	}
 }
