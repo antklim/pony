@@ -7,19 +7,19 @@ import (
 // Props ...
 type Props map[string]string
 
-// Meta ...
-type Meta struct {
+// Content ...
+type Content struct {
 	Pages map[string]Page `yaml:"pages"`
 }
 
-// MetaLoad creates instance of meta from source.
-func MetaLoad(data string) (*Meta, error) {
-	meta := &Meta{}
-	if err := yaml.Unmarshal([]byte(data), meta); err != nil {
+// ContentLoad creates instance of content from source.
+func ContentLoad(data string) (*Content, error) {
+	content := &Content{}
+	if err := yaml.Unmarshal([]byte(data), content); err != nil {
 		return nil, err
 	}
 
-	return meta, nil
+	return content, nil
 }
 
 // Page ...
