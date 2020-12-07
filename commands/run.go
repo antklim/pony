@@ -1,25 +1,42 @@
-package main
+package commands
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/spf13/cobra"
 )
 
-func main() {
+func newRunCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "run",
+		Short: "Run server to preview pages",
+		Run:   runHandler,
+	}
+
+	addStrictFlag(cmd.Flags())
+
+	return cmd
+}
+
+func runHandler(cmd *cobra.Command, args []string) {
+	fmt.Println("run >>>")
+
 	const t = `
-<!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="UTF-8">
-		<title>{{.Title}}</title>
-	</head>
-	<body>
-		<h2>{{.Title}}</h2>
-		{{.Content}}
-	</body>
-</html>
-`
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<meta charset="UTF-8">
+			<title>{{.Title}}</title>
+		</head>
+		<body>
+			<h2>{{.Title}}</h2>
+			{{.Content}}
+		</body>
+	</html>
+	`
 
 	tmpl := template.Must(template.New("rootTemplate").Parse(t))
 

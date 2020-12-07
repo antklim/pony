@@ -1,0 +1,38 @@
+pages:
+  index:
+    name: Home page
+    path: /
+    # template: index.html
+    properties: 
+      - key: title
+        value: Home Page
+      - key: header
+        value: Welcome to the home page
+  about:
+    name: About page
+    path: /about
+    # template: index.html
+    properties: 
+      - key: title
+        value: About Page
+      - key: header
+        value: Welcome to the about page
+  blogs:
+    name: Blogs page
+    path: /blogs
+    # template: index.html
+    properties: 
+      - key: title
+        value: Blogs Page
+      - key: header
+        value: Welcome to the blogs page
+  blog:
+    name: Blog page
+    path: /blogs/{id}
+    # template: blog.html
+    properties: 
+      - key: title
+        value: Blog Page
+      - key: header
+        value: Welcome to the blog ...
+  
