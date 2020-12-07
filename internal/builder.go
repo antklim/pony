@@ -9,6 +9,8 @@ import (
 )
 
 // TODO: template is a part of meta and should be loaded as part of MetaLoad.
+// TODO: allow builder accept template (to be used in runner)
+// TODO: allow builder to output to io writer (to be used in runner)
 
 // Builder defines parameters required to build static pages.
 type Builder struct {

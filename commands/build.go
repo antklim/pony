@@ -46,7 +46,7 @@ func buildHandler(cmd *cobra.Command, args []string) error {
 	if err := builder.Build(); err != nil {
 		return err
 	}
-
+	// TODO: add benchmark (counter how fast the site was build) and show it in the result
 	fmt.Printf("pages are available in %s\n", outdir)
 
 	return nil
