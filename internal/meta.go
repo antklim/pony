@@ -7,7 +7,10 @@ import (
 // Props content properties.
 type Props map[string]string
 
+// TODO: add fields validation
+
 // Meta describes content metadata.
+// All fields are required
 type Meta struct {
 	Pages    map[string]Page `yaml:"pages"`
 	Template string          `yaml:"template"`
@@ -27,7 +30,7 @@ func MetaLoad(data string) (*Meta, error) {
 type Page struct {
 	Name       string     `yaml:"name"`
 	Path       string     `yaml:"path"`
-	Template   string     `yaml:"template"`
+	Template   *string    `yaml:"template"`
 	Properties []Property `yaml:"properties"`
 }
 

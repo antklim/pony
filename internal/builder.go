@@ -26,8 +26,54 @@ type Builder struct {
 	Strict bool
 }
 
+type BuildMeta struct {
+	Tmpl  *template.Template
+	Pages map[string]BuildPage
+}
+
+type BuildPage struct {
+	ID         string
+	Name       string
+	Path       string
+	Template   string // template name
+	Properties map[string]string
+}
+
+func LoadBuildMeta(meta *Meta, tmpldir string) (*BuildMeta, error) {
+	tmpl, err := template.ParseGlob(tmpldir + "/*.html")
+	if err != nil {
+		return nil, err
+	}
+
+	bmeta := &BuildMeta{
+		Tmpl: tmpl,
+	}
+
+	bmetapages := make(map[string]BuildPage)
+
+	for id, page := range meta.Pages {
+		ptmpl := meta.Template
+		if page.Template != nil {
+			ptmpl = *page.Template
+		}
+
+		bmetapages[id] = BuildPage{
+			ID:         id,
+			Name:       page.Name,
+			Path:       page.Path,
+			Template:   ptmpl,
+			Properties: page.Props(),
+		}
+	}
+
+	bmeta.Pages = bmetapages
+
+	return bmeta, nil
+}
+
 // Build applies metadata to template.
 func (b *Builder) Build() error {
+	// TODO: move read to meta
 	buf, err := ioutil.ReadFile(b.Meta)
 	if err != nil {
 		return err
@@ -38,13 +84,13 @@ func (b *Builder) Build() error {
 		return err
 	}
 
-	tmpl, err := template.ParseFiles(b.Tmpl)
+	bmeta, err := LoadBuildMeta(meta, b.Tmpl)
 	if err != nil {
 		return err
 	}
 
 	for id, page := range meta.Pages {
-		if err := buildPage(id, page, tmpl, b.OutDir); err != nil {
+		if err := buildPage(id, page, bmeta.Tmpl, b.OutDir); err != nil {
 			return err
 		}
 	}

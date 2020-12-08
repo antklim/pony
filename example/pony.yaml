@@ -1,4 +1,4 @@
-template: index.html
+template: index
 pages:
   index:
     name: Home page
@@ -19,7 +19,7 @@ pages:
   blogs:
     name: Blogs page
     path: /blogs
-    template: blog.html
+    template: blog
     properties: 
       - key: title
         value: Blogs Page
@@ -28,7 +28,7 @@ pages:
   blog:
     name: Blog page
     path: /blogs/{id}
-    template: blog.html
+    template: blog
     properties: 
       - key: title
         value: Blog Page

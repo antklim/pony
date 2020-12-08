@@ -30,6 +30,7 @@ pages:
         value: Welcome to the about page`
 
 func TestMetaLoad(t *testing.T) {
+	aboutTmpl := "about.html"
 	expected := &internal.Meta{
 		Pages: map[string]internal.Page{
 			"index": internal.Page{
@@ -43,7 +44,7 @@ func TestMetaLoad(t *testing.T) {
 			"about": internal.Page{
 				Name:     "About page",
 				Path:     "/about",
-				Template: "about.html",
+				Template: &aboutTmpl,
 				Properties: []internal.Property{
 					{Key: "title", Value: "About Page"},
 					{Key: "header", Value: "Welcome to the about page"},
