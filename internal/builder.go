@@ -1,11 +1,11 @@
 package internal
 
 import (
+	"fmt"
 	"html/template"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // TODO: template is a part of meta and should be loaded as part of MetaLoad.
@@ -16,81 +16,61 @@ import (
 type Builder struct {
 	// Path to metadata file or directory.
 	Meta string
-	// Path to template file or directory.
+	// Path to templates directory.
 	Tmpl string
 	// Output directory.
 	OutDir string
-	// Dont build template at loading time, build it on demand.
-	LazyLoad bool
 	// Strictly validate integrity of meta and template.
 	Strict bool
+
+	// loaded template
+	tmpl *template.Template
+
+	// loaded metadata
+	meta *Meta
 }
 
-type BuildMeta struct {
-	Tmpl  *template.Template
-	Pages map[string]BuildPage
-}
-
-type BuildPage struct {
-	ID         string
-	Name       string
-	Path       string
-	Template   string // template name
-	Properties map[string]string
-}
-
-func LoadBuildMeta(meta *Meta, tmpldir string) (*BuildMeta, error) {
-	tmpl, err := template.ParseGlob(tmpldir + "/*.html")
+// LoadTemplate loads builder template.
+func (b *Builder) LoadTemplate() error {
+	tmpl, err := template.ParseGlob(b.Tmpl + "/*.html")
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	bmeta := &BuildMeta{
-		Tmpl: tmpl,
+	b.tmpl = tmpl
+
+	return nil
+}
+
+// LoadMeta loads pages metadata.
+func (b *Builder) LoadMeta() error {
+	meta := &Meta{}
+	if err := meta.Load(b.Meta); err != nil {
+		return err
 	}
 
-	bmetapages := make(map[string]BuildPage)
+	b.meta = meta
 
-	for id, page := range meta.Pages {
-		ptmpl := meta.Template
-		if page.Template != nil {
-			ptmpl = *page.Template
+	return nil
+}
+
+// GeneratePages builds pages and saves them to output directory.
+func (b *Builder) GeneratePages() error {
+	for id, page := range b.meta.Pages {
+		outdir := page.OutDir(b.OutDir)
+		if _, err := os.Stat(outdir); os.IsNotExist(err) {
+			if err := os.Mkdir(outdir, 0755); err != nil {
+				return err
+			}
 		}
 
-		bmetapages[id] = BuildPage{
-			ID:         id,
-			Name:       page.Name,
-			Path:       page.Path,
-			Template:   ptmpl,
-			Properties: page.Props(),
+		fname := filepath.Join(outdir, id+".html")
+		f, err := os.Create(fname)
+		if err != nil {
+			return err
 		}
-	}
 
-	bmeta.Pages = bmetapages
-
-	return bmeta, nil
-}
-
-// Build applies metadata to template.
-func (b *Builder) Build() error {
-	// TODO: move read to meta
-	buf, err := ioutil.ReadFile(b.Meta)
-	if err != nil {
-		return err
-	}
-
-	meta, err := MetaLoad(string(buf))
-	if err != nil {
-		return err
-	}
-
-	bmeta, err := LoadBuildMeta(meta, b.Tmpl)
-	if err != nil {
-		return err
-	}
-
-	for id, page := range meta.Pages {
-		if err := buildPage(id, page, bmeta.Tmpl, b.OutDir); err != nil {
+		if err := b.BuildPage(id, f); err != nil {
 			return err
 		}
 	}
@@ -98,30 +78,15 @@ func (b *Builder) Build() error {
 	return nil
 }
 
-func buildPage(id string, page Page, tmpl *template.Template, outdir string) error {
-	ppath := strings.TrimSpace(page.Path)
-
-	subdir := ""
-	if ppath != "" && ppath != "/" {
-		subdir = ppath
+// BuildPage builds page and writes result to provided writer.
+func (b *Builder) BuildPage(id string, w io.Writer) error {
+	page, ok := b.meta.Pages[id]
+	if !ok {
+		return fmt.Errorf("page %s not found in provided configuration", id)
 	}
 
-	dir := filepath.Join(outdir, subdir)
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err := os.Mkdir(dir, 0755); err != nil {
-			return err
-		}
-	}
-
-	fname := filepath.Join(outdir, subdir, id+".html")
-	f, err := os.Create(fname)
-	if err != nil {
-		return err
-	}
-
-	if err := tmpl.Execute(f, page.Props()); err != nil {
-		// TODO: keep file only when in debug mode
-		// os.RemoveAll(f.Name())
+	// TODO: use named template to support multiple templates
+	if err := b.tmpl.Execute(w, page.Properties); err != nil {
 		return err
 	}
 

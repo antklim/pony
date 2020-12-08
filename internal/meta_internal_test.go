@@ -1,14 +1,13 @@
-package internal_test
+package internal
 
 import (
 	"testing"
 
-	"github.com/antklim/pony/internal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var metaData = `
+var metadata = `
 template: index.html
 pages:
   index:
@@ -29,23 +28,23 @@ pages:
       - key: header
         value: Welcome to the about page`
 
-func TestMetaLoad(t *testing.T) {
+func TestParseInMeta(t *testing.T) {
 	aboutTmpl := "about.html"
-	expected := &internal.Meta{
-		Pages: map[string]internal.Page{
-			"index": internal.Page{
+	expected := &inMeta{
+		Pages: map[string]inPage{
+			"index": inPage{
 				Name: "Home page",
 				Path: "/",
-				Properties: []internal.Property{
+				Properties: []inProperty{
 					{Key: "title", Value: "Home Page"},
 					{Key: "header", Value: "Welcome to the home page"},
 				},
 			},
-			"about": internal.Page{
+			"about": inPage{
 				Name:     "About page",
 				Path:     "/about",
 				Template: &aboutTmpl,
-				Properties: []internal.Property{
+				Properties: []inProperty{
 					{Key: "title", Value: "About Page"},
 					{Key: "header", Value: "Welcome to the about page"},
 				},
@@ -54,16 +53,16 @@ func TestMetaLoad(t *testing.T) {
 		Template: "index.html",
 	}
 
-	meta, err := internal.MetaLoad(metaData)
+	meta, err := parseInMeta([]byte(metadata))
 	require.NoError(t, err)
 	assert.Equal(t, expected, meta)
 }
 
-func TestMetaPageProps(t *testing.T) {
+func TestInPageProps(t *testing.T) {
 	testCases := []struct {
 		desc  string
 		data  string
-		props internal.Props
+		props Props
 	}{
 		{
 			desc: "returns nil when no properties found",
@@ -81,7 +80,7 @@ func TestMetaPageProps(t *testing.T) {
           index:
             name: Home page
             path: /
-            properties: 
+            properties:
               - key: title
                 value: Home Page
               - key: header
@@ -94,9 +93,11 @@ func TestMetaPageProps(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			meta, err := internal.MetaLoad(tC.data)
+			meta, err := parseInMeta([]byte(tC.data))
 			require.NoError(t, err)
-			assert.Equal(t, tC.props, meta.Pages["index"].Props())
+			page, ok := meta.Pages["index"]
+			assert.True(t, ok)
+			assert.Equal(t, tC.props, page.Props())
 		})
 	}
 }
