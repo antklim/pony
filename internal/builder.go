@@ -11,6 +11,7 @@ import (
 // TODO: template is a part of meta and should be loaded as part of MetaLoad.
 // TODO: allow builder accept template (to be used in runner)
 // TODO: allow builder to output to io writer (to be used in runner)
+// TODO: validate that all templates referenced in meta available in template directory
 
 // Builder defines parameters required to build static pages.
 type Builder struct {
@@ -85,8 +86,7 @@ func (b *Builder) BuildPage(id string, w io.Writer) error {
 		return fmt.Errorf("page %s not found in provided configuration", id)
 	}
 
-	// TODO: use named template to support multiple templates
-	if err := b.tmpl.Execute(w, page.Properties); err != nil {
+	if err := b.tmpl.ExecuteTemplate(w, page.Template, page.Properties); err != nil {
 		return err
 	}
 

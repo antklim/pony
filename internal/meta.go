@@ -26,9 +26,9 @@ func (m *Meta) Load(file string) error {
 	pages := make(map[string]Page)
 
 	for id, page := range meta.Pages {
-		tmpl := meta.Template
+		tmpl := meta.Template + ".html"
 		if page.Template != nil {
-			tmpl = *page.Template
+			tmpl = *page.Template + ".html"
 		}
 
 		pages[id] = Page{
