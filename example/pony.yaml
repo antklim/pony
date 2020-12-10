@@ -25,13 +25,13 @@ pages:
         value: Blogs Page
       - key: header
         value: Welcome to the blogs page
-  blog:
-    name: Blog page
-    path: /blogs/{id}
-    template: blog
-    properties: 
-      - key: title
-        value: Blog Page
-      - key: header
-        value: Welcome to the blog ...
+  # blog:
+  #   name: Blog page
+  #   path: /blogs/{id}
+  #   template: blog
+  #   properties: 
+  #     - key: title
+  #       value: Blog Page
+  #     - key: header
+  #       value: Welcome to the blog ...
   

@@ -73,7 +73,7 @@ func (b *Builder) GeneratePages() error {
 			}
 		}
 
-		fname := filepath.Join(outdir, id+".html")
+		fname := filepath.Join(outdir, "index.html")
 		f, err := os.Create(fname)
 		if err != nil {
 			return err

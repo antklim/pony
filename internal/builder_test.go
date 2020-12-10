@@ -141,7 +141,7 @@ func TestGeneratePages(t *testing.T) {
 			contains: "<title>Home Page</title>",
 		},
 		{
-			file:     filepath.Join(d, "/about", "about.html"),
+			file:     filepath.Join(d, "/about", "index.html"),
 			contains: "<title>About Page</title>",
 		},
 	}
