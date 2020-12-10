@@ -1,6 +1,8 @@
 package internal_test
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/antklim/pony/internal"
@@ -8,8 +10,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var metaData = `
-template: index.html
+func TestLoadMeta(t *testing.T) {
+	const metadata = `
+template: index
 pages:
   index:
     name: Home page
@@ -22,80 +25,43 @@ pages:
   about:
     name: About page
     path: /about
-    template: about.html
+    template: about
     properties: 
       - key: title
         value: About Page
       - key: header
         value: Welcome to the about page`
 
-func TestMetaLoad(t *testing.T) {
+	d, err := ioutil.TempDir("", "ponytest")
+	defer os.RemoveAll(d)
+	require.NoError(t, err)
+
+	f, err := ioutil.TempFile(d, "pony*.yaml")
+	require.NoError(t, err)
+
+	_, err = f.Write([]byte(metadata))
+	require.NoError(t, err)
+
+	meta, err := internal.LoadMeta(f.Name())
+	require.NoError(t, err)
+
 	expected := &internal.Meta{
 		Pages: map[string]internal.Page{
 			"index": internal.Page{
-				Name: "Home page",
-				Path: "/",
-				Properties: []internal.Property{
-					{Key: "title", Value: "Home Page"},
-					{Key: "header", Value: "Welcome to the home page"},
-				},
+				ID:         "index",
+				Name:       "Home page",
+				Path:       "/",
+				Template:   "index.html",
+				Properties: map[string]string{"title": "Home Page", "header": "Welcome to the home page"},
 			},
 			"about": internal.Page{
-				Name:     "About page",
-				Path:     "/about",
-				Template: "about.html",
-				Properties: []internal.Property{
-					{Key: "title", Value: "About Page"},
-					{Key: "header", Value: "Welcome to the about page"},
-				},
+				ID:         "about",
+				Name:       "About page",
+				Path:       "/about",
+				Template:   "about.html",
+				Properties: map[string]string{"title": "About Page", "header": "Welcome to the about page"},
 			},
 		},
-		Template: "index.html",
 	}
-
-	meta, err := internal.MetaLoad(metaData)
-	require.NoError(t, err)
 	assert.Equal(t, expected, meta)
-}
-
-func TestMetaPageProps(t *testing.T) {
-	testCases := []struct {
-		desc  string
-		data  string
-		props internal.Props
-	}{
-		{
-			desc: "returns nil when no properties found",
-			data: `
-        pages:
-          index:
-            name: Home page
-            path: /`,
-			props: nil,
-		},
-		{
-			desc: "returns properties map",
-			data: `
-        pages:
-          index:
-            name: Home page
-            path: /
-            properties: 
-              - key: title
-                value: Home Page
-              - key: header
-                value: Welcome to the home page`,
-			props: map[string]string{
-				"title":  "Home Page",
-				"header": "Welcome to the home page",
-			},
-		},
-	}
-	for _, tC := range testCases {
-		t.Run(tC.desc, func(t *testing.T) {
-			meta, err := internal.MetaLoad(tC.data)
-			require.NoError(t, err)
-			assert.Equal(t, tC.props, meta.Pages["index"].Props())
-		})
-	}
 }

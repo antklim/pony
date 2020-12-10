@@ -8,7 +8,9 @@ var (
 	meta   = ""    // path to the metadata file
 	outdir = ""    // path to the output directory
 	strict = false // enable metadata and template match validation [build|run]
-	tmpl   = ""    // path to the template file/directory
+
+	// TODO: tmpl must be path to drectory
+	tmpl = "" // path to the template directory
 )
 
 func addMetaFlag(flags *pflag.FlagSet) {
@@ -24,5 +26,5 @@ func addStrictFlag(flags *pflag.FlagSet) {
 }
 
 func addTemplateFlag(flags *pflag.FlagSet) {
-	flags.StringVarP(&tmpl, "template", "t", tmpl, "path to the template file/directory")
+	flags.StringVarP(&tmpl, "template", "t", tmpl, "path to the template directory")
 }
