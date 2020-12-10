@@ -24,11 +24,19 @@ type Builder struct {
 	// Strictly validate integrity of meta and template.
 	Strict bool
 
-	// loaded template
-	tmpl *template.Template
-
 	// loaded metadata
 	meta *Meta
+
+	// loaded template
+	tmpl *template.Template
+}
+
+// NewBuilder creates a new builder with given metadata and template.
+func NewBuilder(meta *Meta, tmpl *template.Template) *Builder {
+	return &Builder{
+		meta: meta,
+		tmpl: tmpl,
+	}
 }
 
 // LoadTemplate loads builder template.
@@ -45,8 +53,8 @@ func (b *Builder) LoadTemplate() error {
 
 // LoadMeta loads pages metadata.
 func (b *Builder) LoadMeta() error {
-	meta := &Meta{}
-	if err := meta.Load(b.Meta); err != nil {
+	meta, err := LoadMeta(b.Meta)
+	if err != nil {
 		return err
 	}
 

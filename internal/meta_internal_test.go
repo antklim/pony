@@ -7,8 +7,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var metadata = `
-template: index.html
+func TestParseInMeta(t *testing.T) {
+	const metadata = `
+template: index
 pages:
   index:
     name: Home page
@@ -21,15 +22,15 @@ pages:
   about:
     name: About page
     path: /about
-    template: about.html
+    template: about
     properties: 
       - key: title
         value: About Page
       - key: header
         value: Welcome to the about page`
 
-func TestParseInMeta(t *testing.T) {
-	aboutTmpl := "about.html"
+	aboutTmpl := "about"
+
 	expected := &inMeta{
 		Pages: map[string]inPage{
 			"index": inPage{
@@ -50,7 +51,7 @@ func TestParseInMeta(t *testing.T) {
 				},
 			},
 		},
-		Template: "index.html",
+		Template: "index",
 	}
 
 	meta, err := parseInMeta([]byte(metadata))

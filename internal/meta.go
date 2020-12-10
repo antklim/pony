@@ -16,11 +16,11 @@ type Meta struct {
 	Pages map[string]Page
 }
 
-// Load loads pages metadata from file.
-func (m *Meta) Load(file string) error {
+// LoadMeta loads pages metadata from file.
+func LoadMeta(file string) (*Meta, error) {
 	meta, err := loadInMeta(file)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	pages := make(map[string]Page)
@@ -40,9 +40,11 @@ func (m *Meta) Load(file string) error {
 		}
 	}
 
-	m.Pages = pages
+	m := &Meta{
+		Pages: pages,
+	}
 
-	return nil
+	return m, nil
 }
 
 // Page stores page metadata.
