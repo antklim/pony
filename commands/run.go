@@ -1,11 +1,13 @@
 package commands
 
 import (
-	"fmt"
-	"html/template"
 	"log"
 	"net/http"
+	"os"
+	"time"
 
+	"github.com/antklim/pony/internal"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +15,7 @@ func newRunCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Run server to preview pages",
-		Run:   runHandler,
+		RunE:  runHandler,
 	}
 
 	addStrictFlag(cmd.Flags())
@@ -21,40 +23,41 @@ func newRunCmd() *cobra.Command {
 	return cmd
 }
 
-func runHandler(cmd *cobra.Command, args []string) {
-	fmt.Println("run >>>")
+func runHandler(cmd *cobra.Command, args []string) error {
+	addr := ":9000"
+	router := &internal.Router{}
 
-	const t = `
-	<!DOCTYPE html>
-	<html>
-		<head>
-			<meta charset="UTF-8">
-			<title>{{.Title}}</title>
-		</head>
-		<body>
-			<h2>{{.Title}}</h2>
-			{{.Content}}
-		</body>
-	</html>
-	`
-
-	tmpl := template.Must(template.New("rootTemplate").Parse(t))
-
-	http.HandleFunc("/", rootHandler(tmpl))
-	log.Fatal(http.ListenAndServe(":9000", nil))
-}
-
-func rootHandler(tmpl *template.Template) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		data := struct {
-			Title   string
-			Content string
-		}{
-			Title:   "Pony",
-			Content: "Minimalistic static site generator in Go",
-		}
-		if err := tmpl.Execute(w, data); err != nil {
-			log.Println(err)
-		}
+	if _, err := os.Stat(meta); err != nil {
+		return errors.Wrap(err, "metadata file read failed")
 	}
+
+	if _, err := os.Stat(tmpl); err != nil {
+		return errors.Wrap(err, "template file read failed")
+	}
+
+	if err := router.LoadMeta(meta); err != nil {
+		return err
+	}
+
+	if err := router.LoadTemplate(tmpl); err != nil {
+		return err
+	}
+
+	mux := http.NewServeMux()
+
+	for route, handler := range router.PreviewRoutes() {
+		mux.Handle(route, handler)
+	}
+
+	s := &http.Server{
+		Addr:           addr,
+		Handler:        mux,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	log.Printf("pony preview is listening at %s", addr)
+	log.Fatal(s.ListenAndServe())
+	return nil
 }
