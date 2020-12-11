@@ -1,10 +1,15 @@
 package pony
 
+import (
+	"html/template"
+	"io"
+
+	"github.com/antklim/pony/internal"
+)
+
 type options struct {
 	templateDir  string // template directory root
 	metadataFile string // metadata file name
-	outputDir    string // output directory root
-	addr         string // server address for the site preview or site map (ip:port)
 }
 
 // Option sets pony options such as template directory, schema, etc.
@@ -38,16 +43,27 @@ func MetadataFile(s string) Option {
 	})
 }
 
-// OutputDir sets output directory root.
-func OutputDir(s string) Option {
-	return newFuncOption(func(o *options) {
-		o.outputDir = s
-	})
+// Pony is a static page renderer.
+type Pony struct {
+	opts options
+
+	tmpl *template.Template
+	meta *internal.Meta
 }
 
-// Address sets server address for site preview or site map preview.
-func Address(s string) Option {
-	return newFuncOption(func(o *options) {
-		o.addr = s
-	})
+// NewPony creates an instance of Pony which has no metadata or templates loaded.
+func NewPony(opt ...Option) *Pony {
+	return nil
+}
+
+func (p *Pony) LoadMetadata() error {
+	return nil
+}
+
+func (p *Pony) LoadTemplates() error {
+	return nil
+}
+
+func (p *Pony) RenderPage(w io.Writer) error {
+	return nil
 }
