@@ -12,7 +12,8 @@ func FromPropertyInput(input []PropertyInput) Properties {
 
 // Metadata stores pages metadata.
 type Metadata struct {
-	Pages map[string]Page
+	Pages    map[string]Page
+	Template string
 }
 
 // Page stores page metadata.
@@ -34,6 +35,8 @@ func FromPageInput(id string, pi PageInput) Page {
 		Properties: FromPropertyInput(pi.Properties),
 	}
 }
+
+// TODO: add validation for *Input structures
 
 // MetadataInput describes input format of metadata.
 type MetadataInput struct {

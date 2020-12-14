@@ -1,6 +1,7 @@
 package pony
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -86,7 +87,8 @@ func (p *Pony) LoadMetadata() error {
 	}
 
 	p.meta = &Metadata{
-		Pages: pages,
+		Pages:    pages,
+		Template: metaInput.Template,
 	}
 
 	return nil
@@ -114,7 +116,18 @@ func (p *Pony) TemplatesLoaded() bool {
 	return p.tmpl != nil
 }
 
-// RenderPage renders page by provided metadata and template.
-func (p *Pony) RenderPage(w io.Writer) error {
-	return nil
+// RenderPage renders page by provided page id and template.
+func (p *Pony) RenderPage(id string, w io.Writer) error {
+	page, ok := p.meta.Pages[id]
+	if !ok {
+		return fmt.Errorf("page %s not found in provided configuration", id)
+	}
+
+	templateType := ".html"
+	templateName := p.meta.Template + templateType
+	if page.Template != nil {
+		templateName = *page.Template + templateType
+	}
+
+	return p.tmpl.ExecuteTemplate(w, templateName, page.Properties)
 }
