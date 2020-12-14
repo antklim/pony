@@ -68,20 +68,21 @@ func NewPony(opts ...Option) *Pony {
 }
 
 // LoadAll loads metadata and templates.
-func (p *Pony) LoadAll() error {
+func (p *Pony) LoadAll() []error {
+	var errs []error
 	if p.cfg.metadataFile != "" && p.meta == nil {
 		if err := p.LoadMetadata(); err != nil {
-			return err
+			errs = append(errs, err)
 		}
 	}
 
 	if p.cfg.templatesDir != "" && p.tmpl == nil {
 		if err := p.LoadTemplates(); err != nil {
-			return err
+			errs = append(errs, err)
 		}
 	}
 
-	return nil
+	return errs
 }
 
 // LoadMetadata loads metadata file.

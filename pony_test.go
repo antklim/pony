@@ -51,6 +51,52 @@ func storeTempFile(dir, payload, namePattern string) (string, error) {
 	return f.Name(), nil
 }
 
+func TestLoadAll(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "ponytest")
+	defer os.RemoveAll(tempDir)
+	require.NoError(t, err)
+
+	fMeta, err := storeTempFile(tempDir, metadata, "pony*.yaml")
+	require.NoError(t, err)
+
+	_, err = storeTempFile(tempDir, tmpl, "index*.html")
+	require.NoError(t, err)
+
+	testCases := []struct {
+		desc   string
+		opts   []pony.Option
+		assert func(*testing.T, []error)
+	}{
+		{
+			desc: "returns a list of errors when failed",
+			opts: []pony.Option{
+				pony.MetadataFile("abc"),
+				pony.TemplatesDir("xyz"),
+			},
+			assert: func(t *testing.T, errs []error) {
+				assert.Len(t, errs, 2)
+			},
+		},
+		{
+			desc: "returns nil when succeed",
+			opts: []pony.Option{
+				pony.MetadataFile(fMeta),
+				pony.TemplatesDir(tempDir),
+			},
+			assert: func(t *testing.T, errs []error) {
+				assert.Nil(t, errs)
+			},
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			p := pony.NewPony(tC.opts...)
+			errs := p.LoadAll()
+			tC.assert(t, errs)
+		})
+	}
+}
+
 func TestLoadMetadata(t *testing.T) {
 	tempDir, err := ioutil.TempDir("", "ponytest")
 	defer os.RemoveAll(tempDir)
@@ -173,7 +219,8 @@ func TestRenderPage(t *testing.T) {
 		pony.TemplatesDir(tempDir),
 	}
 	p := pony.NewPony(opts...)
-	err = p.LoadAll()
+	errs := p.LoadAll()
+	require.Nil(t, errs)
 
 	var buf bytes.Buffer
 	err = p.RenderPage(page, &buf)
