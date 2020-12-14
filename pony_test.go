@@ -10,13 +10,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func storeMetadata(dir, metadata string) (string, error) {
-	f, err := ioutil.TempFile(dir, "pony*.yaml")
+func storeTempFile(dir, payload, namePattern string) (string, error) {
+	f, err := ioutil.TempFile(dir, namePattern)
 	if err != nil {
 		return "", err
 	}
 
-	if _, err := f.Write([]byte(metadata)); err != nil {
+	if _, err := f.Write([]byte(payload)); err != nil {
 		return "", err
 	}
 
@@ -40,10 +40,10 @@ pages:
 	defer os.RemoveAll(tempDir)
 	require.NoError(t, err)
 
-	fOk, err := storeMetadata(tempDir, metadata)
+	fOk, err := storeTempFile(tempDir, metadata, "pony*.yaml")
 	require.NoError(t, err)
 
-	fErr, err := storeMetadata(tempDir, "abc")
+	fErr, err := storeTempFile(tempDir, "abc", "pony*.yaml")
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -87,14 +87,54 @@ pages:
 	}
 }
 
-// func TestLoadTemplates(t *testing.T) {
-// 	opts := []pony.Option{
-// 		pony.TemplatesDir(""),
-// 	}
-// 	p := pony.NewPony(opts...)
-// 	assert.False(t, p.TemplatesLoaded())
+func TestLoadTemplates(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "ponytest")
+	defer os.RemoveAll(tempDir)
+	require.NoError(t, err)
 
-// 	err := p.LoadTemplates()
-// 	assert.NoError(t, err)
-// 	assert.True(t, p.TemplatesLoaded())
-// }
+	const tmpl = `
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .title }}</title>
+  </head>
+  <body>
+  </body>
+</html>`
+
+	_, err = storeTempFile(tempDir, tmpl, "index*.html")
+	require.NoError(t, err)
+
+	testCases := []struct {
+		desc   string
+		opts   []pony.Option
+		assert func(*testing.T, *pony.Pony, error)
+	}{
+		{
+			desc: "returns error when failed to parse templates",
+			opts: []pony.Option{pony.TemplatesDir("abc")},
+			assert: func(t *testing.T, p *pony.Pony, err error) {
+				assert.Contains(t, err.Error(), "templates parse failed: ")
+				assert.False(t, p.MetadataLoaded())
+			},
+		},
+		{
+			desc: "returns error when failed to parse templates",
+			opts: []pony.Option{pony.TemplatesDir(tempDir)},
+			assert: func(t *testing.T, p *pony.Pony, err error) {
+				assert.NoError(t, err)
+				assert.True(t, p.TemplatesLoaded())
+			},
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			p := pony.NewPony(tC.opts...)
+			assert.False(t, p.TemplatesLoaded())
+
+			err := p.LoadTemplates()
+			tC.assert(t, p, err)
+		})
+	}
+}

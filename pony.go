@@ -99,6 +99,13 @@ func (p *Pony) MetadataLoaded() bool {
 
 // LoadTemplates loads templates.
 func (p *Pony) LoadTemplates() error {
+	tmpl, err := template.ParseGlob(p.cfg.templatesDir + "/*.html")
+	if err != nil {
+		return errors.Wrap(err, "templates parse failed")
+	}
+
+	p.tmpl = tmpl
+
 	return nil
 }
 
