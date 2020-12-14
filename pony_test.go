@@ -2,6 +2,8 @@ package pony_test
 
 import (
 	"bytes"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -15,7 +17,7 @@ import (
 
 const (
 	metadata = `
-template: index
+template: %s
 pages:
   index:
     name: Home page
@@ -38,6 +40,28 @@ pages:
 </html>`
 )
 
+func setupFiles() (tempDir, fMeta, tmplName string, err error) {
+	tempDir, err = ioutil.TempDir("", "ponytest")
+	if err != nil {
+		return tempDir, fMeta, tmplName, err
+	}
+
+	tmplPath, err := storeTempFile(tempDir, tmpl, "index*.html")
+	if err != nil {
+		return tempDir, fMeta, tmplName, err
+	}
+
+	tmplFile := filepath.Base(tmplPath)
+	tmplName = strings.TrimSuffix(tmplFile, filepath.Ext(tmplFile))
+
+	fMeta, err = storeTempFile(tempDir, fmt.Sprintf(metadata, tmplName), "pony*.yaml")
+	if err != nil {
+		return tempDir, fMeta, tmplName, err
+	}
+
+	return tempDir, fMeta, tmplName, err
+}
+
 func storeTempFile(dir, payload, namePattern string) (string, error) {
 	f, err := ioutil.TempFile(dir, namePattern)
 	if err != nil {
@@ -52,14 +76,8 @@ func storeTempFile(dir, payload, namePattern string) (string, error) {
 }
 
 func TestLoadAll(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "ponytest")
+	tempDir, fMeta, _, err := setupFiles()
 	defer os.RemoveAll(tempDir)
-	require.NoError(t, err)
-
-	fMeta, err := storeTempFile(tempDir, metadata, "pony*.yaml")
-	require.NoError(t, err)
-
-	_, err = storeTempFile(tempDir, tmpl, "index*.html")
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -98,11 +116,8 @@ func TestLoadAll(t *testing.T) {
 }
 
 func TestLoadMetadata(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "ponytest")
+	tempDir, fOk, _, err := setupFiles()
 	defer os.RemoveAll(tempDir)
-	require.NoError(t, err)
-
-	fOk, err := storeTempFile(tempDir, metadata, "pony*.yaml")
 	require.NoError(t, err)
 
 	fErr, err := storeTempFile(tempDir, "abc", "pony*.yaml")
@@ -150,11 +165,8 @@ func TestLoadMetadata(t *testing.T) {
 }
 
 func TestLoadTemplates(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "ponytest")
+	tempDir, _, _, err := setupFiles()
 	defer os.RemoveAll(tempDir)
-	require.NoError(t, err)
-
-	_, err = storeTempFile(tempDir, tmpl, "index*.html")
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -191,21 +203,40 @@ func TestLoadTemplates(t *testing.T) {
 }
 
 func TestRenderPages(t *testing.T) {
-	t.Skip("not implemented")
-}
-
-func TestRenderPage(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "ponytest")
+	tempDir, fMeta, _, err := setupFiles()
 	defer os.RemoveAll(tempDir)
 	require.NoError(t, err)
 
-	fMeta, err := storeTempFile(tempDir, metadata, "pony*.yaml")
-	require.NoError(t, err)
+	opts := []pony.Option{
+		pony.MetadataFile(fMeta),
+		pony.TemplatesDir(tempDir),
+	}
+	p := pony.NewPony(opts...)
+	errs := p.LoadAll()
+	require.Nil(t, errs)
 
-	tmplPath, err := storeTempFile(tempDir, tmpl, "index*.html")
+	bufs := make(map[string]bytes.Buffer)
+	pageWriter := func(id string) io.Writer {
+		var buf bytes.Buffer
+		bufs[id] = buf
+		return &buf
+	}
+
+	err = p.RenderPages(pageWriter)
 	require.NoError(t, err)
-	tmplFile := filepath.Base(tmplPath)
-	tmplName := strings.TrimSuffix(tmplFile, filepath.Ext(tmplFile))
+	assert.Len(t, bufs, 1)
+
+	_, ok := bufs["index"]
+	assert.True(t, ok)
+
+	_, nok := bufs["index1"]
+	assert.False(t, nok)
+}
+
+func TestRenderPage(t *testing.T) {
+	tempDir, fMeta, tmplName, err := setupFiles()
+	defer os.RemoveAll(tempDir)
+	require.NoError(t, err)
 
 	page := pony.Page{
 		ID:         "index",

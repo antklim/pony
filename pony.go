@@ -133,7 +133,7 @@ func (p *Pony) TemplatesLoaded() bool {
 	return p.tmpl != nil
 }
 
-// RenderPages renders pages and writes results to the provided io.Writer.
+// RenderPages renders pages and writes the results to a provided io.Writer.
 func (p *Pony) RenderPages(pageWriter func(id string) io.Writer) error {
 	for id, page := range p.meta.Pages {
 		w := pageWriter(id)
