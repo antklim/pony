@@ -1,13 +1,41 @@
 package pony_test
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/antklim/pony"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	metadata = `
+template: index
+pages:
+  index:
+    name: Home page
+    path: /
+    properties: 
+      - key: title
+        value: Home Page
+      - key: header
+        value: Welcome to the home page`
+
+	tmpl = `
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .title }}</title>
+  </head>
+  <body>
+  </body>
+</html>`
 )
 
 func storeTempFile(dir, payload, namePattern string) (string, error) {
@@ -24,18 +52,6 @@ func storeTempFile(dir, payload, namePattern string) (string, error) {
 }
 
 func TestLoadMetadata(t *testing.T) {
-	const metadata = `
-template: index
-pages:
-  index:
-    name: Home page
-    path: /
-    properties: 
-      - key: title
-        value: Home Page
-      - key: header
-        value: Welcome to the home page`
-
 	tempDir, err := ioutil.TempDir("", "ponytest")
 	defer os.RemoveAll(tempDir)
 	require.NoError(t, err)
@@ -92,17 +108,6 @@ func TestLoadTemplates(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 	require.NoError(t, err)
 
-	const tmpl = `
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .title }}</title>
-  </head>
-  <body>
-  </body>
-</html>`
-
 	_, err = storeTempFile(tempDir, tmpl, "index*.html")
 	require.NoError(t, err)
 
@@ -137,4 +142,53 @@ func TestLoadTemplates(t *testing.T) {
 			tC.assert(t, p, err)
 		})
 	}
+}
+
+func TestRenderPages(t *testing.T) {
+	t.Skip("not implemented")
+}
+
+func TestRenderPage(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "ponytest")
+	defer os.RemoveAll(tempDir)
+	require.NoError(t, err)
+
+	fMeta, err := storeTempFile(tempDir, metadata, "pony*.yaml")
+	require.NoError(t, err)
+
+	tmplPath, err := storeTempFile(tempDir, tmpl, "index*.html")
+	require.NoError(t, err)
+	tmplFile := filepath.Base(tmplPath)
+	tmplName := strings.TrimSuffix(tmplFile, filepath.Ext(tmplFile))
+
+	page := pony.Page{
+		ID:         "index",
+		Name:       "Home Page",
+		Template:   &tmplName,
+		Properties: map[string]string{"title": "Foo Bar"},
+	}
+
+	opts := []pony.Option{
+		pony.MetadataFile(fMeta),
+		pony.TemplatesDir(tempDir),
+	}
+	p := pony.NewPony(opts...)
+	err = p.LoadAll()
+
+	var buf bytes.Buffer
+	err = p.RenderPage(page, &buf)
+	require.NoError(t, err)
+
+	renderedPage := `
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foo Bar</title>
+  </head>
+  <body>
+  </body>
+</html>`
+
+	assert.Equal(t, renderedPage, buf.String())
 }

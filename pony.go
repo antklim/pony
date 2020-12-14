@@ -1,7 +1,6 @@
 package pony
 
 import (
-	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -68,6 +67,23 @@ func NewPony(opts ...Option) *Pony {
 	return p
 }
 
+// LoadAll loads metadata and templates.
+func (p *Pony) LoadAll() error {
+	if p.cfg.metadataFile != "" && p.meta == nil {
+		if err := p.LoadMetadata(); err != nil {
+			return err
+		}
+	}
+
+	if p.cfg.templatesDir != "" && p.tmpl == nil {
+		if err := p.LoadTemplates(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // LoadMetadata loads metadata file.
 func (p *Pony) LoadMetadata() error {
 	buf, err := ioutil.ReadFile(p.cfg.metadataFile)
@@ -116,13 +132,20 @@ func (p *Pony) TemplatesLoaded() bool {
 	return p.tmpl != nil
 }
 
-// RenderPage renders page by provided page id and template.
-func (p *Pony) RenderPage(id string, w io.Writer) error {
-	page, ok := p.meta.Pages[id]
-	if !ok {
-		return fmt.Errorf("page %s not found in provided configuration", id)
+// RenderPages renders pages and writes results to the provided io.Writer.
+func (p *Pony) RenderPages(pageWriter func(id string) io.Writer) error {
+	for id, page := range p.meta.Pages {
+		w := pageWriter(id)
+		if err := p.RenderPage(page, w); err != nil {
+			return errors.Wrapf(err, "page %s render failed", page.Name)
+		}
 	}
 
+	return nil
+}
+
+// RenderPage renders page by provided page metadata.
+func (p *Pony) RenderPage(page Page, w io.Writer) error {
 	templateType := ".html"
 	templateName := p.meta.Template + templateType
 	if page.Template != nil {
