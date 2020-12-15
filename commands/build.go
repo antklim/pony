@@ -3,10 +3,8 @@ package commands
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/antklim/pony"
-
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -26,18 +24,6 @@ func newBuildCmd() *cobra.Command {
 
 // TODO: return a list of errors one time
 func buildHandler(cmd *cobra.Command, args []string) error {
-	if _, err := os.Stat(meta); err != nil {
-		return errors.Wrap(err, "metadata file read failed")
-	}
-
-	if _, err := os.Stat(outDir); err != nil {
-		return errors.Wrap(err, "output directory read failed")
-	}
-
-	if _, err := os.Stat(tmpl); err != nil {
-		return errors.Wrap(err, "templates directory read failed")
-	}
-
 	opts := []pony.Option{
 		pony.MetadataFile(meta),
 		pony.TemplatesDir(tmpl),
@@ -47,9 +33,15 @@ func buildHandler(cmd *cobra.Command, args []string) error {
 		log.Println(errs)
 		return errors.New("failed to load pony")
 	}
+	b := &pony.Builder{
+		MetadataFile: meta,
+		OutDir:       outDir,
+		TemplatesDir: tmpl,
+		Pony:         p,
+	}
 
-	if err := pony.RenderAndStore(p, outDir); err != nil {
-		return errors.Wrap(err, "failed to render site")
+	if err := b.Build(); err != nil {
+		return err
 	}
 
 	// TODO: add benchmark (counter how fast the site was build) and show it in the result

@@ -4,8 +4,6 @@ import (
 	"html/template"
 	"io"
 	"io/ioutil"
-	"os"
-	"path/filepath"
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -164,23 +162,4 @@ func (p *Pony) RenderPage(page Page, w io.Writer) error {
 	}
 
 	return p.tmpl.ExecuteTemplate(w, templateName, page.Properties)
-}
-
-// RenderAndStore renders pages and stores the result in output directory.
-func RenderAndStore(p *Pony, dir string) error {
-	return p.RenderPages(fileWriter(dir))
-}
-
-func fileWriter(dir string) PageWriter {
-	return func(page Page) (io.Writer, error) {
-		outDir := filepath.Join(dir, page.Path)
-		if _, err := os.Stat(outDir); os.IsNotExist(err) {
-			if err := os.Mkdir(outDir, 0755); err != nil {
-				return nil, err
-			}
-		}
-
-		fname := filepath.Join(outDir, "index.html")
-		return os.Create(fname)
-	}
 }
