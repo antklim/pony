@@ -216,9 +216,9 @@ func TestRenderPages(t *testing.T) {
 	require.Nil(t, errs)
 
 	bufs := make(map[string]bytes.Buffer)
-	pageWriter := func(id, path string) (io.Writer, error) {
+	pageWriter := func(page pony.Page) (io.Writer, error) {
 		var buf bytes.Buffer
-		bufs[id] = buf
+		bufs[page.ID] = buf
 		return &buf, nil
 	}
 

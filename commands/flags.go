@@ -6,10 +6,10 @@ import (
 
 var (
 	meta   = ""    // path to the metadata file
-	outdir = ""    // path to the output directory
+	outDir = ""    // path to the output directory
 	strict = false // enable metadata and template match validation [build|run]
 
-	// TODO: tmpl must be path to drectory
+	// TODO: validate tmpl to be the path to drectory
 	tmpl = "" // path to the template directory
 )
 
@@ -18,7 +18,7 @@ func addMetaFlag(flags *pflag.FlagSet) {
 }
 
 func addOutdirFlag(flags *pflag.FlagSet) {
-	flags.StringVarP(&outdir, "outdir", "o", outdir, "path to the output directory")
+	flags.StringVarP(&outDir, "outdir", "o", outDir, "path to the output directory")
 }
 
 func addStrictFlag(flags *pflag.FlagSet) {

@@ -48,7 +48,7 @@ func MetadataFile(s string) Option {
 }
 
 // PageWriter creates writer to process rendered page.
-type PageWriter func(id, path string) (io.Writer, error)
+type PageWriter func(page Page) (io.Writer, error)
 
 // Pony is a static page renderer.
 type Pony struct {
@@ -140,8 +140,8 @@ func (p *Pony) TemplatesLoaded() bool {
 
 // RenderPages renders pages and writes the results to a provided io.Writer.
 func (p *Pony) RenderPages(pw PageWriter) error {
-	for id, page := range p.meta.Pages {
-		w, err := pw(id, page.Path)
+	for _, page := range p.meta.Pages {
+		w, err := pw(page)
 		if err != nil {
 			return err
 		}
@@ -172,15 +172,15 @@ func RenderAndStore(p *Pony, dir string) error {
 }
 
 func fileWriter(dir string) PageWriter {
-	return func(id, path string) (io.Writer, error) {
-		outDir := filepath.Join(dir, path)
+	return func(page Page) (io.Writer, error) {
+		outDir := filepath.Join(dir, page.Path)
 		if _, err := os.Stat(outDir); os.IsNotExist(err) {
 			if err := os.Mkdir(outDir, 0755); err != nil {
 				return nil, err
 			}
 		}
 
-		fname := filepath.Join(outDir, id+".html")
+		fname := filepath.Join(outDir, "index.html")
 		return os.Create(fname)
 	}
 }
