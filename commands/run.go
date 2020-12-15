@@ -1,13 +1,8 @@
 package commands
 
 import (
-	"log"
-	"net/http"
-	"os"
-	"time"
+	"fmt"
 
-	"github.com/antklim/pony/internal"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -24,40 +19,41 @@ func newRunCmd() *cobra.Command {
 }
 
 func runHandler(cmd *cobra.Command, args []string) error {
-	addr := ":9000"
-	router := &internal.Router{}
+	fmt.Println("run handler >>>")
+	// addr := ":9000"
+	// router := &internal.Router{}
 
-	if _, err := os.Stat(meta); err != nil {
-		return errors.Wrap(err, "metadata file read failed")
-	}
+	// if _, err := os.Stat(meta); err != nil {
+	// 	return errors.Wrap(err, "metadata file read failed")
+	// }
 
-	if _, err := os.Stat(tmpl); err != nil {
-		return errors.Wrap(err, "template file read failed")
-	}
+	// if _, err := os.Stat(tmpl); err != nil {
+	// 	return errors.Wrap(err, "template file read failed")
+	// }
 
-	if err := router.LoadMeta(meta); err != nil {
-		return err
-	}
+	// if err := router.LoadMeta(meta); err != nil {
+	// 	return err
+	// }
 
-	if err := router.LoadTemplate(tmpl); err != nil {
-		return err
-	}
+	// if err := router.LoadTemplate(tmpl); err != nil {
+	// 	return err
+	// }
 
-	mux := http.NewServeMux()
+	// mux := http.NewServeMux()
 
-	for route, handler := range router.PreviewRoutes() {
-		mux.Handle(route, handler)
-	}
+	// for route, handler := range router.PreviewRoutes() {
+	// 	mux.Handle(route, handler)
+	// }
 
-	s := &http.Server{
-		Addr:           addr,
-		Handler:        mux,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
-	}
+	// s := &http.Server{
+	// 	Addr:           addr,
+	// 	Handler:        mux,
+	// 	ReadTimeout:    10 * time.Second,
+	// 	WriteTimeout:   10 * time.Second,
+	// 	MaxHeaderBytes: 1 << 20,
+	// }
 
-	log.Printf("pony preview is listening at %s", addr)
-	log.Fatal(s.ListenAndServe())
+	// log.Printf("pony preview is listening at %s", addr)
+	// log.Fatal(s.ListenAndServe())
 	return nil
 }
