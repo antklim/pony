@@ -4,6 +4,8 @@ import (
 	"html/template"
 	"io"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -44,6 +46,9 @@ func MetadataFile(s string) Option {
 		cfg.metadataFile = s
 	})
 }
+
+// PageWriter creates writer to process rendered page.
+type PageWriter func(id, path string) (io.Writer, error)
 
 // Pony is a static page renderer.
 type Pony struct {
@@ -134,9 +139,13 @@ func (p *Pony) TemplatesLoaded() bool {
 }
 
 // RenderPages renders pages and writes the results to a provided io.Writer.
-func (p *Pony) RenderPages(pageWriter func(id string) io.Writer) error {
+func (p *Pony) RenderPages(pw PageWriter) error {
 	for id, page := range p.meta.Pages {
-		w := pageWriter(id)
+		w, err := pw(id, page.Path)
+		if err != nil {
+			return err
+		}
+
 		if err := p.RenderPage(page, w); err != nil {
 			return errors.Wrapf(err, "page %s render failed", page.Name)
 		}
@@ -147,6 +156,7 @@ func (p *Pony) RenderPages(pageWriter func(id string) io.Writer) error {
 
 // RenderPage renders page by provided page metadata.
 func (p *Pony) RenderPage(page Page, w io.Writer) error {
+	// TODO: create template type and make it configurable
 	templateType := ".html"
 	templateName := p.meta.Template + templateType
 	if page.Template != nil {
@@ -154,4 +164,23 @@ func (p *Pony) RenderPage(page Page, w io.Writer) error {
 	}
 
 	return p.tmpl.ExecuteTemplate(w, templateName, page.Properties)
+}
+
+// RenderAndStore renders pages and stores the result in output directory.
+func RenderAndStore(p *Pony, dir string) error {
+	return p.RenderPages(fileWriter(dir))
+}
+
+func fileWriter(dir string) PageWriter {
+	return func(id, path string) (io.Writer, error) {
+		outDir := filepath.Join(dir, path)
+		if _, err := os.Stat(outDir); os.IsNotExist(err) {
+			if err := os.Mkdir(outDir, 0755); err != nil {
+				return nil, err
+			}
+		}
+
+		fname := filepath.Join(outDir, id+".html")
+		return os.Create(fname)
+	}
 }

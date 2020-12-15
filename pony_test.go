@@ -216,10 +216,10 @@ func TestRenderPages(t *testing.T) {
 	require.Nil(t, errs)
 
 	bufs := make(map[string]bytes.Buffer)
-	pageWriter := func(id string) io.Writer {
+	pageWriter := func(id, path string) (io.Writer, error) {
 		var buf bytes.Buffer
 		bufs[id] = buf
-		return &buf
+		return &buf, nil
 	}
 
 	err = p.RenderPages(pageWriter)
