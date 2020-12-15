@@ -7,7 +7,11 @@ type Properties map[string]string
 
 // FromPropertyInput creates properties map from the list of property inputs.
 func FromPropertyInput(input []PropertyInput) Properties {
-	return nil
+	props := make(map[string]string, len(input))
+	for _, pi := range input {
+		props[pi.Key] = pi.Value
+	}
+	return Properties(props)
 }
 
 // Metadata stores pages metadata.
