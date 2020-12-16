@@ -1,63 +1,41 @@
 package commands
 
 import (
-	"log"
-	"net/http"
-	"os"
-	"time"
-
-	"github.com/antklim/pony/internal"
-	"github.com/pkg/errors"
+	"github.com/antklim/pony"
 	"github.com/spf13/cobra"
 )
+
+var ttarget = pony.SitePreviewServer
 
 func newRunCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Run server to preview pages",
-		RunE:  runHandler,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if target == "map" {
+				ttarget = pony.SiteMapViewServer
+			}
+		},
+		RunE: runHandler,
 	}
 
-	addStrictFlag(cmd.Flags())
+	addAddressFlag(cmd.Flags())
+	addTargetFlag(cmd.Flags())
 
 	return cmd
 }
 
 func runHandler(cmd *cobra.Command, args []string) error {
-	addr := ":9000"
-	router := &internal.Router{}
-
-	if _, err := os.Stat(meta); err != nil {
-		return errors.Wrap(err, "metadata file read failed")
+	s := &pony.Server{
+		Addr:         address,
+		Target:       ttarget,
+		MetadataFile: meta,
+		TemplatesDir: tmpl,
 	}
 
-	if _, err := os.Stat(tmpl); err != nil {
-		return errors.Wrap(err, "template file read failed")
-	}
-
-	if err := router.LoadMeta(meta); err != nil {
+	if err := s.Start(); err != nil {
 		return err
 	}
 
-	if err := router.LoadTemplate(tmpl); err != nil {
-		return err
-	}
-
-	mux := http.NewServeMux()
-
-	for route, handler := range router.PreviewRoutes() {
-		mux.Handle(route, handler)
-	}
-
-	s := &http.Server{
-		Addr:           addr,
-		Handler:        mux,
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
-	}
-
-	log.Printf("pony preview is listening at %s", addr)
-	log.Fatal(s.ListenAndServe())
 	return nil
 }

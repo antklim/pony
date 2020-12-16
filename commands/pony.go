@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -16,18 +14,14 @@ func Execute(args []string) error {
 func newPonyCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pony",
-		Short: "Pony is a simple static site generator and server",
-		// Run:   ponyHandler,
+		Short: "Pony is a simple static site generator and viewer",
 	}
 
 	cmd.AddCommand(newBuildCmd(), newRunCmd())
 
 	addMetaFlag(cmd.PersistentFlags())
 	addTemplateFlag(cmd.PersistentFlags())
+	addStrictFlag(cmd.Flags())
 
 	return cmd
-}
-
-func ponyHandler(cmd *cobra.Command, args []string) {
-	fmt.Println("Welcome to pony!")
 }
