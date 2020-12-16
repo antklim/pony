@@ -21,8 +21,9 @@ func newRunCmd() *cobra.Command {
 
 func runHandler(cmd *cobra.Command, args []string) error {
 	s := &pony.Server{
-		Addr:         ":9000",
-		Target:       pony.SiteMapViewServer,
+		Addr: ":9000",
+		// Target:       pony.SiteMapViewServer,
+		Target:       pony.SitePreviewServer,
 		MetadataFile: meta,
 		TemplatesDir: tmpl,
 	}

@@ -131,17 +131,31 @@ func (s *Server) routes() map[string]http.HandlerFunc {
 }
 
 func (s *Server) previewRoutes() map[string]http.HandlerFunc {
-	return nil
+	schema := s.pony.PagesSchema()
+
+	routes := make(map[string]http.HandlerFunc, len(schema))
+
+	for path, page := range schema {
+		routes[path] = s.previewFunc(page)
+	}
+
+	return routes
+}
+
+func (s *Server) previewFunc(page Page) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s.pony.RenderPage(page, w)
+	})
 }
 
 func (s *Server) siteMapRoutes() map[string]http.HandlerFunc {
 	return map[string]http.HandlerFunc{
-		"/": siteMapFunc(s.pony.meta, s.tmpl),
+		"/": s.siteMapFunc(),
 	}
 }
 
-func siteMapFunc(meta *Metadata, tmpl *template.Template) http.HandlerFunc {
+func (s *Server) siteMapFunc() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tmpl.Execute(w, meta)
+		s.tmpl.Execute(w, s.pony.meta)
 	})
 }
