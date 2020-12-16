@@ -5,25 +5,30 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var ttarget = pony.SitePreviewServer
+
 func newRunCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "run",
 		Short: "Run server to preview pages",
-		RunE:  runHandler,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if target == "map" {
+				ttarget = pony.SiteMapViewServer
+			}
+		},
+		RunE: runHandler,
 	}
 
-	addStrictFlag(cmd.Flags())
+	addAddressFlag(cmd.Flags())
+	addTargetFlag(cmd.Flags())
 
 	return cmd
 }
 
-// TODO: add address and target flags
-
 func runHandler(cmd *cobra.Command, args []string) error {
 	s := &pony.Server{
-		Addr: ":9000",
-		// Target:       pony.SiteMapViewServer,
-		Target:       pony.SitePreviewServer,
+		Addr:         address,
+		Target:       ttarget,
 		MetadataFile: meta,
 		TemplatesDir: tmpl,
 	}

@@ -21,6 +21,7 @@ func newPonyCmd() *cobra.Command {
 
 	addMetaFlag(cmd.PersistentFlags())
 	addTemplateFlag(cmd.PersistentFlags())
+	addStrictFlag(cmd.Flags())
 
 	return cmd
 }

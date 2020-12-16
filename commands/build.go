@@ -16,7 +16,6 @@ func newBuildCmd() *cobra.Command {
 	}
 
 	addOutdirFlag(cmd.Flags())
-	addStrictFlag(cmd.Flags())
 
 	return cmd
 }
