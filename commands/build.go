@@ -28,14 +28,6 @@ func buildHandler(cmd *cobra.Command, args []string) error {
 		TemplatesDir: tmpl,
 	}
 
-	if err := b.Validate(); err != nil {
-		return err
-	}
-
-	if err := b.Init(); err != nil {
-		return err
-	}
-
 	start := time.Now()
 
 	if err := b.Build(); err != nil {

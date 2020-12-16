@@ -18,8 +18,20 @@ type Builder struct {
 	pony         *Pony
 }
 
-// Validate validates builder structure and returns compound error.
-func (b *Builder) Validate() error {
+// Build builds site and saves it to a provided output directory.
+func (b *Builder) Build() error {
+	if err := b.validate(); err != nil {
+		return err
+	}
+
+	if err := b.init(); err != nil {
+		return err
+	}
+
+	return b.pony.RenderPages(fileWriter(b.OutDir))
+}
+
+func (b *Builder) validate() error {
 	errs := make([]string, 0)
 
 	if _, err := os.Stat(b.MetadataFile); err != nil {
@@ -42,8 +54,7 @@ func (b *Builder) Validate() error {
 	return errors.New(emsg)
 }
 
-// Init initializes resources required for page rendering.
-func (b *Builder) Init() error {
+func (b *Builder) init() error {
 	opts := []Option{
 		MetadataFile(b.MetadataFile),
 		TemplatesDir(b.TemplatesDir),
@@ -57,11 +68,6 @@ func (b *Builder) Init() error {
 	b.pony = p
 
 	return nil
-}
-
-// Build builds site and saves it to a provided output directory.
-func (b *Builder) Build() error {
-	return b.pony.RenderPages(fileWriter(b.OutDir))
 }
 
 func fileWriter(dir string) PageWriter {

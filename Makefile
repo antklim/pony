@@ -48,4 +48,7 @@ pony-build: ## Build pony site
 	@mkdir _build
 	@build/pony build -o _build -t example -m example/pony.yaml
 
+pony-site-map: ## Run pony site map
+	@build/pony run -t example -m example/pony.yaml --sitemap -a :9000
+
 .DEFAULT_GOAL := help
