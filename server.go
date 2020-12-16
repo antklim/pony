@@ -71,7 +71,12 @@ func (s *Server) Start() error {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	log.Printf("Pony is listening at http://%s...", s.Addr)
+	target := "site preview"
+	if s.Target == SiteMapViewServer {
+		target = "site map"
+	}
+
+	log.Printf("Pony (%s) is listening at http://%s...", target, s.Addr)
 	return server.ListenAndServe()
 }
 
