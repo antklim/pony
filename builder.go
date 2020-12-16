@@ -2,33 +2,66 @@ package pony
 
 import (
 	"io"
+	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 )
 
+// Builder builds and stores site artifacts.
 type Builder struct {
 	MetadataFile string
 	OutDir       string
 	TemplatesDir string
-	Pony         *Pony
+	pony         *Pony
 }
 
-func (b *Builder) Build() error {
+// Validate validates builder structure and returns compound error.
+func (b *Builder) Validate() error {
+	errs := make([]string, 0)
+
 	if _, err := os.Stat(b.MetadataFile); err != nil {
-		return errors.Wrap(err, "metadata file read failed")
+		errs = append(errs, errors.WithMessage(err, "metadata file read failed").Error())
 	}
 
 	if _, err := os.Stat(b.OutDir); err != nil {
-		return errors.Wrap(err, "output directory read failed")
+		errs = append(errs, errors.WithMessage(err, "output directory read failed").Error())
 	}
 
 	if _, err := os.Stat(b.TemplatesDir); err != nil {
-		return errors.Wrap(err, "templates directory read failed")
+		errs = append(errs, errors.WithMessage(err, "templates directory read failed").Error())
 	}
 
-	return b.Pony.RenderPages(fileWriter(b.OutDir))
+	if len(errs) == 0 {
+		return nil
+	}
+
+	emsg := strings.Join(errs, "; ")
+	return errors.New(emsg)
+}
+
+// Init initializes resources required for page rendering.
+func (b *Builder) Init() error {
+	opts := []Option{
+		MetadataFile(b.MetadataFile),
+		TemplatesDir(b.TemplatesDir),
+	}
+	p := NewPony(opts...)
+	if errs := p.LoadAll(); errs != nil {
+		log.Println(errs)
+		return errors.New("failed to initialize pony")
+	}
+
+	b.pony = p
+
+	return nil
+}
+
+// Build builds site and saves it to a provided output directory.
+func (b *Builder) Build() error {
+	return b.pony.RenderPages(fileWriter(b.OutDir))
 }
 
 func fileWriter(dir string) PageWriter {

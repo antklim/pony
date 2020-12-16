@@ -163,3 +163,14 @@ func (p *Pony) RenderPage(page Page, w io.Writer) error {
 
 	return p.tmpl.ExecuteTemplate(w, templateName, page.Properties)
 }
+
+// PagesSchema returns pages schema.
+func (p *Pony) PagesSchema() map[string]Page {
+	schema := make(map[string]Page, len(p.meta.Pages))
+
+	for _, page := range p.meta.Pages {
+		schema[page.Path] = page
+	}
+
+	return schema
+}

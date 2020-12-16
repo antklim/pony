@@ -2,10 +2,9 @@ package commands
 
 import (
 	"fmt"
-	"log"
+	"time"
 
 	"github.com/antklim/pony"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -22,30 +21,28 @@ func newBuildCmd() *cobra.Command {
 	return cmd
 }
 
-// TODO: return a list of errors one time
 func buildHandler(cmd *cobra.Command, args []string) error {
-	opts := []pony.Option{
-		pony.MetadataFile(meta),
-		pony.TemplatesDir(tmpl),
-	}
-	p := pony.NewPony(opts...)
-	if errs := p.LoadAll(); errs != nil {
-		log.Println(errs)
-		return errors.New("failed to load pony")
-	}
 	b := &pony.Builder{
 		MetadataFile: meta,
 		OutDir:       outDir,
 		TemplatesDir: tmpl,
-		Pony:         p,
 	}
+
+	if err := b.Validate(); err != nil {
+		return err
+	}
+
+	if err := b.Init(); err != nil {
+		return err
+	}
+
+	start := time.Now()
 
 	if err := b.Build(); err != nil {
 		return err
 	}
 
-	// TODO: add benchmark (counter how fast the site was build) and show it in the result
-	fmt.Printf("pages are available in %s\n", outDir)
+	fmt.Printf("pages are available in %s (built in %s)\n", outDir, time.Since(start).Round(time.Millisecond))
 
 	return nil
 }

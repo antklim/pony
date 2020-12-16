@@ -39,7 +39,7 @@ go-test:
 	go test -v -tags="unit" ./...
 
 pony-clean: ## Clean pony site
-	@echo "Pony Clean ..."
+	@echo "Pony clean ..."
 	@rm -fr _build
 
 pony-build: ## Build pony site
